@@ -4,7 +4,7 @@ export async function onRequest(context) {
   // เช่น /api/receipt -> receipt
   const apiName = url.pathname.replace('/api/', '');
 
-  const GAS_BASE = "https://script.google.com/macros/s/AKfycbzijjoRa_2vZ3y5F3KzVkxJxgO14MsSyfik3boH1cqLH_Bc5bz2ChNk5iPXj_wykcsuF1w/exec";
+  const GAS_BASE = "https://script.google.com/macros/s/AKfycbz8-s_ZguywHelbx0zpzYsADFFO9xvb8QvhkdHX4YJO3iRzPNTSDM8wg11CD-68H-rp4g/exec";
 
   // ส่งเป็น query parameter แทน path
   const targetUrl = new URL(GAS_BASE);
