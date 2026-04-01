@@ -19,35 +19,76 @@
       display: block;
       background: #fff;
     }
+    .loading, .error {
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: Arial, sans-serif;
+      color: #333;
+      background: #f6f7fb;
+      text-align: center;
+      padding: 24px;
+      box-sizing: border-box;
+    }
   </style>
 </head>
 <body>
-  <iframe id="appFrame"></iframe>
+  <div id="status" class="loading">กำลังโหลดระบบ...</div>
+  <iframe id="appFrame" style="display:none;"></iframe>
 
   <script>
-    const GAS_BASE = "https://script.google.com/macros/s/AKfycbzdC7uIoIqAPDPwCahaSKhu704TWTCYEJrONJooU3kEWtEY-2bRqjBsYP8c_o9wqino/exec";
-    const currentUrl = new URL(window.location.href);
-    const finalUrl = GAS_BASE + currentUrl.search;
+    async function initApp() {
+      try {
+        const res = await fetch('/config.json?v=1', { cache: 'no-store' });
 
-    document.getElementById("appFrame").src = finalUrl;
-
-    window.addEventListener("message", (event) => {
-      if (!event.data || event.data.type !== "navigate") return;
-
-      const url = new URL(window.location.href);
-      const params = event.data.params || {};
-
-      Object.keys(params).forEach(key => {
-        const value = params[key];
-        if (value !== undefined && value !== null && value !== "") {
-          url.searchParams.set(key, value);
-        } else {
-          url.searchParams.delete(key);
+        if (!res.ok) {
+          throw new Error('โหลด config.json ไม่สำเร็จ');
         }
-      });
 
-      window.location.href = url.toString();
-    });
+        const config = await res.json();
+        const GAS_BASE = config.GAS_BASE || '';
+
+        if (!GAS_BASE) {
+          throw new Error('ไม่พบค่า GAS_BASE ใน config.json');
+        }
+
+        const currentUrl = new URL(window.location.href);
+        const finalUrl = GAS_BASE + currentUrl.search;
+
+        const frame = document.getElementById('appFrame');
+        frame.src = finalUrl;
+        frame.style.display = 'block';
+
+        const status = document.getElementById('status');
+        if (status) status.remove();
+
+        window.addEventListener('message', (event) => {
+          if (!event.data || event.data.type !== 'navigate') return;
+
+          const url = new URL(window.location.href);
+          const params = event.data.params || {};
+
+          Object.keys(params).forEach((key) => {
+            const value = params[key];
+            if (value !== undefined && value !== null && value !== '') {
+              url.searchParams.set(key, value);
+            } else {
+              url.searchParams.delete(key);
+            }
+          });
+
+          window.location.href = url.toString();
+        });
+      } catch (err) {
+        console.error(err);
+        const status = document.getElementById('status');
+        status.className = 'error';
+        status.innerHTML = 'ไม่สามารถโหลดค่าตั้งค่าระบบได้<br>กรุณาตรวจสอบไฟล์ config.json';
+      }
+    }
+
+    initApp();
   </script>
 </body>
 </html>
