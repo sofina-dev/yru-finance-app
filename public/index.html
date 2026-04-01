@@ -142,13 +142,22 @@
 
         window.addEventListener('message', (event) => {
           if (!event.data || event.data.type !== 'navigate') return;
-
-          loadingScreen.classList.remove('hide');
-          frame.classList.remove('loaded');
-
+        
+          const loadingScreen = document.getElementById('loadingScreen');
+          const frame = document.getElementById('appFrame');
+        
+          if (loadingScreen) loadingScreen.classList.remove('hide');
+          if (frame) frame.classList.remove('loaded');
+        
+          // ✅ เพิ่มบรรทัดนี้
+          if (event.data.url) {
+            window.location.href = event.data.url;
+            return;
+          }
+        
           const url = new URL(window.location.href);
           const params = event.data.params || {};
-
+        
           Object.keys(params).forEach((key) => {
             const value = params[key];
             if (value !== undefined && value !== null && value !== '') {
@@ -157,7 +166,7 @@
               url.searchParams.delete(key);
             }
           });
-
+        
           window.location.href = url.toString();
         });
       } catch (err) {
